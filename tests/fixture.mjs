@@ -64,11 +64,24 @@ export function installEnvironment({window,jquery,generation=14}) {
       env.rollCount++;
       if(env.failRoll) throw Error("roll failed");
       this.total=env.rollResult + Number(this.formula.split("+")[1] ?? 0);
-      this.dice=[{results:[{result:env.rollResult}]}];return this;
+      this.dice=[{faces:20,results:[{result:env.rollResult}]}];return this;
     }
     async toMessage(data) {if(env.failChat) throw Error("chat failed");chat.push(data);}
   }
-  const game={view:"game",release:{generation},system:{id:"dnd5e"},modules,user:{id:"gm",name:"GM",isGM:true,character:a},users:[{id:"gm",active:true,isGM:true}],i18n:{lang:"es",localize:key=>key,format:(key,data)=>key},settings:{register:(id,key,def)=>settings.set(`${id}.${key}`,def.default),registerMenu:()=>{},get:(id,key)=>settings.get(`${id}.${key}`),set:async(id,key,value)=>settings.set(`${id}.${key}`,value)}};
+  env.nativeChecks=[];
+  async function nativeCheck(kind,config,dialog,message) {
+    env.nativeChecks.push({kind,config,dialog,message});
+    if(env.cancelCheck) return null;
+    const mod = kind === "skill" ? a.system.skills[config.skill]?.total ?? 0
+      : kind === "tool" ? a.system.tools[config.tool]?.total ?? 3
+      : a.system.abilities[config.ability]?.mod ?? 0;
+    const roll = await new Roll(`1d20 + ${mod}`).evaluate();
+    roll.options={};return [roll];
+  }
+  a.rollSkill=(...args)=>nativeCheck("skill",...args);
+  a.rollToolCheck=(...args)=>nativeCheck("tool",...args);
+  a.rollAbilityCheck=(...args)=>nativeCheck("ability",...args);
+  const game={view:"game",release:{generation},system:{id:"dnd5e",version:generation===14 ? "6.0.5" : "4.4.0"},modules,user:{id:"gm",name:"GM",isGM:true,character:a},users:[{id:"gm",active:true,isGM:true}],i18n:{lang:"es",localize:key=>key,format:(key,data)=>key},settings:{register:(id,key,def)=>settings.set(`${id}.${key}`,def.default),registerMenu:()=>{},get:(id,key)=>settings.get(`${id}.${key}`),set:async(id,key,value)=>settings.set(`${id}.${key}`,value)}};
   const AudioHelper={play:async data=>sounds.push(data)};
   const globals={window,document:window.document,localStorage:window.localStorage,$:jquery,Hooks,game,canvas:{tokens:{controlled:[{actor:a}]}},ui:{notifications:{warn:msg=>notices.push(msg),error:msg=>notices.push(msg),info:msg=>notices.push(msg)}},Roll,ChatMessage:{getSpeaker:()=>({actor:a.id}),create:async data=>{if(env.failChat)throw Error("chat failed");chat.push(data);}},fromUuid:async uuid=>env.documents?.get(uuid)};
   globals.foundry=generation===14 ? {appv1:{api:{Dialog}},audio:{AudioHelper},applications:{api:{ApplicationV2:class{}}}} : {applications:{api:{ApplicationV2:class{}}},audio:{AudioHelper}};
@@ -76,7 +89,7 @@ export function installEnvironment({window,jquery,generation=14}) {
   for (const [key,value] of Object.entries(globals)) if (globalThis[key] !== value) globalThis[key]=value;
   env.fire=async event=>{for(const fn of hooks.get(event)??[]) await fn();};
   env.seed=async()=>{
-    await a.createEmbeddedDocuments("Item",[{name:"Smith's Tools",type:"tool",system:{quantity:1,type:{baseItem:"smith"}}},...[
+    await a.createEmbeddedDocuments("Item",[{name:"Smith's Tools",type:"tool",system:{quantity:1,type:{baseItem:"smith"}}},...["carpenter","mason","tinker"].map(id=>({name:`${id} tools`,type:"tool",system:{quantity:1,type:{baseItem:id}}})),...[
       "Blacksmith Materials","Alchemy Materials","Jewelry Materials","Leatherwork Materials","Crafting Materials","Food Supplies","Wood","Construction Materials","Planks","Charcoal","Fertilizer","Monster Parts"
     ].map(name=>({name,type:"loot",img:"icons/svg/coins.svg",system:{quantity:2000},flags:{[MODULE_ID]:{material:name}}}))]);
   };

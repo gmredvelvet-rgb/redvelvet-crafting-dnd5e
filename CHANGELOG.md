@@ -5,7 +5,9 @@
 - Compatibilidad de APIs Foundry v13/v14 con selección segura de Dialog y AudioHelper.
 - Fondos e iconos locales reutilizados de la edición PF2e; portada de taller nueva.
 - 20 efectos sonoros originales con volumen y activación por usuario.
-- Total de herramientas nativo D&D5e; detección por identificador y nombres ES/EN.
+- Selección de herramientas por receta, identificadores nativos y nombres ES/EN.
+- Tiradas nativas D&D5e de herramientas y habilidades, diálogo con característica/ventaja/bono, competencia y pericia del sistema, y natural del d20 conservado.
+- Cancelar el diálogo de tirada devuelve materiales y permite reintentar; herramientas incorrectas o agotadas no gastan recursos.
 - Una sola ventana por actor, comprobación de propiedad y apertura por API o `/craft`.
 - Acciones de inventario protegidas frente a doble clic, restauración al cancelar o fallar y limpieza de temporizadores.
 - Fabricación entrega una unidad automáticamente y elimina el identificador del objeto fuente.

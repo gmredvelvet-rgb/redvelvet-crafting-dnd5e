@@ -3,10 +3,11 @@
 ## Completado
 
 - [x] Pruebas automatizadas del código real de la interfaz con adaptadores de APIs v13/v14.
-- [x] 21 casos: inventario, doble clic, cancelar, escritura fallida, herramientas, costes, grados, fabricación, conversión, recolección, estructuras, cultivo, despiece y soft gate.
+- [x] 32 casos: inventario, doble clic, cancelar, escritura fallida, herramientas, costes, grados, fabricación, conversión, recolección, estructuras, cultivo, despiece y soft gate.
 - [x] Referencias de fondos, SVG, OGG, JS, CSS e idiomas locales completas.
 - [x] Sin dependencia de audio de BG3, Dice So Nice, Maestro o carpetas de un mundo.
 - [x] Registro del ID del módulo presente en la fuente del backend de licencia consultada.
+- [x] Selector por receta revisado en navegador: piso con Carpenter/Mason, cambio a Mason actualiza el bono visible. Evidencia `docs/screenshots/tool-selection.png`.
 - [x] Navegador real sobre el harness aislado: carga de arte local, cancelación con devolución 2000 → 1996 → 2000, activación con Enter y entrega de una sola espada. Evidencias en `docs/screenshots/`.
 
 ## Prueba en mundos reales antes de publicar
@@ -15,6 +16,8 @@ No se ha ejecutado un mundo de Foundry v13 ni un mundo D&D5e v14 durante esta pr
 
 - [ ] Foundry v13 + D&D5e 4.4/5: activar, `/craft`, todos los oficios y un resultado de éxito/fallo.
 - [ ] Foundry v14 + D&D5e 6: repetir las actividades y comprobar consola sin excepciones.
+- [ ] Tiradas nativas: Smith/Carpenter/Mason/Weaver/Glassblower, con competencia y pericia distintas. Cambiar característica, ventaja/desventaja y bono 1d4; verificar total del chat y dificultad del mini-juego.
+- [ ] Cancelar el diálogo nativo y reintentar; retirar la herramienta y comprobar que no gasta materiales.
 - [ ] GM y jugador propietario: fabricar un objeto de pila 50 y comprobar que entrega solamente uno.
 - [ ] Cerrar cada mini-juego antes del resultado: comprobar devolución de materiales y que no entregue nada después.
 - [ ] Dos clientes sobre actores distintos; no editar el mismo inventario simultáneamente.

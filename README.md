@@ -8,7 +8,7 @@ Taller de crafting para Foundry VTT **v13 y v14**, con interfaz ES/EN. Cinco ofi
 2. Selecciona un token que controles o asigna tu personaje de usuario.
 3. Escribe **`/craft`** en el chat. Como GM puedes seleccionar cualquier token.
 4. Para fabricar, lleva la herramienta correspondiente y reúne los materiales mediante Recolección. Elige un oficio y arrastra un objeto físico desde un compendio.
-5. Pulsa **Iniciar Creación**. Activa cada icono en su ventana dorada, con clic o con **Tab + Enter/Espacio**. Un éxito entrega automáticamente **una unidad** al inventario.
+5. Pulsa **Iniciar Creación** y confirma la tirada de D&D5e. Activa cada icono en su ventana dorada, con clic o con **Tab + Enter/Espacio**. Un éxito entrega automáticamente **una unidad** al inventario.
 
 Macro alternativa:
 
@@ -17,9 +17,26 @@ game.modules.get("redvelvet-crafting-dnd5e").api.open();
 // También acepta {actor: game.actors.get("ID_DEL_ACTOR")}.
 ```
 
-Herrería requiere herramientas de herrero; Alquimia acepta suministros de alquimista o kit de herborista; Joyería requiere herramientas de joyero; Piel/Tela acepta herramientas de curtidor o tejedor. Construir requiere herramientas de carpintero, albañil, herrero o tallador. Equipo Vario está disponible para todos. Los identificadores nativos de herramientas funcionan aunque cambies sus nombres.
+La herramienta depende de la receta. Llevarla permite intentar la fabricación; la competencia y pericia se obtienen de la ficha D&D5e y no se conceden automáticamente por llevarla. Si tienes varias herramientas válidas, el selector permite elegir cuál usar. Equipo Vario permite consultar recetas, pero también exige la herramienta apropiada para fabricarlas. Los identificadores nativos funcionan aunque cambies sus nombres; objetos antiguos sin identificador se reconocen por nombres ES/EN.
 
-El modificador usa el total preparado de la herramienta en la ficha D&D5e, incluidos los bonos numéricos del sistema. Si no existe ese total, usa la característica de la herramienta y su competencia; sin herramienta, usa INT. Conserva las reglas de costes y grados de éxito del módulo: son **homebrew**, no una implementación de las reglas oficiales de fabricación de 2014/2024. Bonos con dados adicionales, ventaja y automatizaciones de otros módulos no se aplican automáticamente a estas tiradas personalizadas.
+| Trabajo | Herramienta |
+|---|---|
+| Armas metálicas y armaduras | Herrero / Smith |
+| Arcos, bastones y garrotes | Tallador de madera o carpintero |
+| Tablas, muebles, puertas y escaleras | Carpintero; alternativas según la pieza |
+| Muros, pisos y edificios | Albañil o carpintero |
+| Ventanas de vidrio | Soplador de vidrio |
+| Pociones curativas | Herborista o alquimista |
+| Otros preparados / venenos | Alquimista / envenenador o alquimista |
+| Raciones / cerveza y vino | Cocinero / cervecero |
+| Joyas | Joyero |
+| Cuero / tela / calzado | Curtidor / tejedor / zapatero o curtidor |
+| Mapas / libros / retratos / cerámica | Cartógrafo / calígrafo / pintor / alfarero |
+| Equipo mecánico, maquinaria y defensas | Manitas; herrero en recetas de defensa |
+
+Al iniciar se abre el diálogo **nativo de D&D5e**. Allí puedes escoger característica, tirada normal, ventaja/desventaja y bono adicional. El sistema calcula competencia, pericia, efectos y bonos con dados; el módulo utiliza el total resultante y el d20 conservado. Recolección usa su habilidad configurada (Supervivencia, Atletismo, Naturaleza o Investigación); Cultivos usa Naturaleza y Despiece, Supervivencia. Las integraciones que escuchen los hooks nativos reciben esas tiradas; cada integración externa necesita su propia prueba.
+
+Cancelar ese diálogo devuelve los materiales y permite volver a intentar. El bono mostrado en el taller es orientativo: cambiar característica o añadir dados en el diálogo puede cambiar el resultado final. D&D5e no tiene una habilidad universal «Crafting»; cada oficio usa su herramienta. Los costes, DC, mini-juegos y grados de éxito del módulo siguen siendo **homebrew**, no una implementación de las reglas oficiales de fabricación de 2014/2024.
 
 ## Sonidos y accesibilidad
 

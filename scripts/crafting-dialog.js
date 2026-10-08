@@ -1,5 +1,5 @@
 import { ASSETS, MODULE_ID } from "./assets.js";
-import { priceGP, batchCost as batchCostFor, degreeOfSuccess, craftingModifier, toolsFor, craftedItemData, escapeHTML } from "./dnd5e-adapter.js";
+import { priceGP, batchCost as batchCostFor, degreeOfSuccess, craftingModifier, toolsFor, craftedItemData, escapeHTML, rollCheck, publishCheck, naturalD20, RollCancelledError } from "./dnd5e-adapter.js";
 import { SFX_NAV, SFX_HIT, SFX_MISS, playSound, registerAudioSettings } from "./audio.js";
 import { CraftingSession } from "./session.js";
 
@@ -8,7 +8,7 @@ import { CraftingSession } from "./session.js";
  * Adaptado de Pathfinder 2e a D&D 5e por GM RedVelvet
  *
  * Cambios clave respecto a la versión PF2e:
- *  - Usa el modificador de Inteligencia (herramientas de artesano) en vez de la
+ *  - Usa las tiradas nativas de herramientas de D&D5e en vez de la
  *    habilidad "Crafting" con rangos de competencia PF2e
  *  - DC por precio del objeto (13/15/17/20) en vez de nivel PF2e
  *  - Mismos 4 grados de éxito (Critical Success/Success/Failure/Critical Failure):
@@ -16,7 +16,7 @@ import { CraftingSession } from "./session.js";
  *  - Coste en materiales propios de cada categoría (Blacksmith/Alchemy/Jewelry/Leatherwork/Crafting Materials)
  *  - Categorías habilitadas según herramientas de artesano en el inventario (type "tool")
  *  - Recolección, Building Assets, Building (estructuras), Cultivos, Despiece y
- *    Reciclaje funcionan IDÉNTICOS a la versión PF2e (no usan nada específico de sistema)
+ *    Reciclaje conservan el contenido PF2e con tiradas e inventario adaptados a D&D5e
  *  - Detección de categorías adaptada a los tipos de item de D&D 5e
  *    (weapon, equipment, consumable, tool, loot…)
  */
@@ -375,7 +375,7 @@ import { CraftingSession } from "./session.js";
   // CONSTRUCCIONES (BUILDING)
   // Piezas por set de tiles 2x2 (10ft × 10ft). Cada pieza consume materiales
   // (principalmente Construction Materials de la Recolección) y produce un ítem
-  // contable en el inventario. Tirada de Inteligencia + mini-juego, con grados de éxito.
+  // contable en el inventario. Tirada nativa de herramienta + mini-juego, con grados de éxito.
   // ─────────────────────────────────────────────────────────────────────────────
   // Cadena de la madera: 🪵 Wood (talar) → 🪚 Planks / ⚫ Charcoal.
   // Las piezas con madera piden Tablas; el carbón alimenta Herrería y Cocina.
@@ -535,12 +535,10 @@ import { CraftingSession } from "./session.js";
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // MODIFICADOR DE CRAFTEO (D&D 5e): Inteligencia, la característica que rigen
-  // las herramientas de artesano. Sin sistema de rangos de competencia como
-  // D&D 5e — las categorías se habilitan o no según las herramientas en el
-  // inventario del actor (ver detección de herramientas en render()).
+  // The displayed modifier is an estimate; the native D&D5e check handles the
+  // chosen ability, proficiency, expertise, effects and extra dice at roll time.
   // ─────────────────────────────────────────────────────────────────────────────
-  function getCraftingMod(actor, category) { const data = craftingModifier(actor, category); return {...data, label: escapeHTML(data.label)}; }
+  function getCraftingMod(actor, category, context = {}, selectedId) { const data = craftingModifier(actor, category, context, selectedId); return {...data, label: escapeHTML(data.label)}; }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // GRADOS DE ÉXITO (homebrew del módulo, no depende de reglas de ningún sistema)
@@ -602,7 +600,7 @@ import { CraftingSession } from "./session.js";
         "2. Necesitas la <strong>herramienta de artesano</strong> correspondiente en tu inventario (Smith's Tools, Alchemist's Supplies, etc.) para desbloquear cada categoría.",
         "3. Elige una categoría y arrastra un objeto desde un compendio al área de drop.",
         "4. El DC depende del <strong>precio del objeto</strong>.",
-        "5. Pulsa <strong>Iniciar Creación</strong>: se usa el total de tu herramienta; sin total preparado se usa su característica y competencia.",
+        "5. Pulsa <strong>Iniciar Creación</strong>: elige la herramienta, característica, ventaja y bonos en el diálogo de D&D5e.",
         "6. Luego aparece el <strong>mini-juego</strong>: haz clic en los iconos cuando brillen en oro.",
         "7. Los aciertos modifican el grado de éxito final (ver abajo).",
       ],
@@ -627,7 +625,7 @@ import { CraftingSession } from "./session.js";
         "💩 Abono → <strong>Naturaleza</strong> (produce 💩 Fertilizer; <strong>requiere 2 🦴 Monster Parts</strong> — harina de huesos)",
         "🪵 Talar → <strong>Atletismo</strong> (produce 🪵 Wood — madera para Tablas y Carbón)",
         "🐾 En Comida puedes <strong>convertir 🍖 Food Supplies en 🐾 Monster Rations (1:1)</strong>, sin tirada ni mini-juego — compatible con el módulo Domatori para alimentar mascotas.",
-        "Se tira <strong>1d20 + habilidad</strong> contra <strong>DC 15</strong>: cuanto mejor la tirada, más fácil el mini-juego.",
+        "Se hace una <strong>prueba nativa de habilidad</strong> contra <strong>DC 15</strong>: cuanto mejor la tirada, más fácil el mini-juego.",
         "Cada acierto del mini-juego otorga <strong>2 unidades</strong> del recurso.",
         "Si superas la DC por 5 o más, ganas <strong>+2 unidades extra</strong> (con al menos 1 acierto).",
         "Con 0 aciertos no consigues nada. ¡La destreza importa!",
@@ -638,7 +636,7 @@ import { CraftingSession } from "./session.js";
         "Cada pieza consume materiales (sobre todo 🪨 Construction Materials) y algunas piden acero, tela o alquimia.",
         "🪚 <strong>Tablas</strong> (3 🪵 + 1 🪨): las piezas con madera (pisos, techos, puertas, mesas, muebles, escaleras) las requieren.",
         "⚫ <strong>Carbón</strong> (4 🪵): combustible para la 🔥 Herrería y la 🍳 Cocina en Construcciones.",
-        "Se tira <strong>Inteligencia</strong> contra el DC de la pieza y se juega el mini-juego (mismos grados de éxito que el crafteo).",
+        "Se tira la <strong>herramienta apropiada</strong> contra el DC de la pieza y se juega el mini-juego (mismos grados de éxito que el crafteo).",
         "⭐ Éxito Crítico → pieza construida y recuperas el 25% de los materiales.",
         "✅ Éxito → pieza construida (se añade a tu inventario para contabilizarla).",
         "⚠️ Fallo → sin pieza; recuperas el 50% de los materiales.",
@@ -978,7 +976,7 @@ import { CraftingSession } from "./session.js";
         "2. You need the matching <strong>artisan's tool</strong> in your inventory (Smith's Tools, Alchemist's Supplies, etc.) to unlock each category.",
         "3. Choose a category and drag an item from a compendium into the drop area.",
         "4. The DC depends on the <strong>item's price</strong>.",
-        "5. Click <strong>Start Crafting</strong>: your Intelligence modifier will be rolled.",
+        "5. Click <strong>Start Crafting</strong>: choose the tool, ability and advantage in the D&D5e check dialog.",
         "6. The <strong>minigame</strong> appears: click the icons when they glow gold.",
         "7. Hits modify the final degree of success (see below).",
       ],
@@ -1003,7 +1001,7 @@ import { CraftingSession } from "./session.js";
         "💩 Fertilizer → <strong>Nature</strong> (produces 💩 Fertilizer; <strong>requires 2 🦴 Monster Parts</strong> — bone meal)",
         "🪵 Logging → <strong>Athletics</strong> (produces 🪵 Wood — timber for Planks and Charcoal)",
         "🐾 Under Food you can <strong>convert 🍖 Food Supplies into 🐾 Monster Rations (1:1)</strong>, no roll or minigame — compatible with the Domatori module for feeding pets.",
-        "You roll <strong>1d20 + skill</strong> against <strong>DC 15</strong>: the better the roll, the easier the minigame.",
+        "You make a <strong>native skill check</strong> against <strong>DC 15</strong>: the better the roll, the easier the minigame.",
         "Each minigame hit grants <strong>2 units</strong> of the resource.",
         "If you beat the DC by 5 or more, you gain <strong>+2 extra units</strong> (with at least 1 hit).",
         "With 0 hits you get nothing. Dexterity matters!",
@@ -1014,7 +1012,7 @@ import { CraftingSession } from "./session.js";
         "Each piece consumes materials (mostly 🪨 Construction Materials); some need steel, cloth or alchemy.",
         "🪚 <strong>Planks</strong> (3 🪵 + 1 🪨): wooden pieces (floors, roofs, doors, workbenches, furniture, stairs) require them.",
         "⚫ <strong>Charcoal</strong> (4 🪵): fuel for the 🔥 Smithy and 🍳 Kitchen in Building.",
-        "You roll <strong>Intelligence</strong> against the piece's DC and play the minigame (same degrees of success as crafting).",
+        "You roll the <strong>appropriate tool check</strong> against the piece's DC and play the minigame (same degrees of success as crafting).",
         "⭐ Critical Success → piece built and you recover 25% of the materials.",
         "✅ Success → piece built (added to your inventory for tracking).",
         "⚠️ Failure → no piece; you recover 50% of the materials.",
@@ -2579,13 +2577,13 @@ import { CraftingSession } from "./session.js";
             <p>💩 Abono → <strong>Naturaleza</strong> (produce 💩 Fertilizer; requiere 2 🦴 Monster Parts)</p>
             <p>🪵 Talar → <strong>Atletismo</strong> (produce 🪵 Wood — para 🪚 Tablas y ⚫ Carbón en Building Assets)</p>
             <p>🐾 En Comida: convierte 🍖 Food Supplies en 🐾 Monster Rations (1:1, directo, compatible con Domatori)</p>
-            <p>Se tira <strong>1d20 + habilidad</strong> contra <strong>DC 15</strong>; cada acierto del mini-juego da <strong>2 unidades</strong>, y +2 extra si superas la DC por 5+.</p>
+            <p>Se hace una <strong>prueba nativa de habilidad</strong> contra <strong>DC 15</strong>; cada acierto del mini-juego da <strong>2 unidades</strong>, y +2 extra si superas la DC por 5+.</p>
 
             <h3 class="rv-rules-title">🏗️ Building Assets</h3>
             <p>Craftea piezas por <strong>set de tiles 2×2 (10ft × 10ft)</strong>: pisos, paredes, techos, puertas, ventanas, mesas de trabajo, muebles y escaleras.</p>
             <p>Cada pieza consume materiales (sobre todo 🪨 Construction Materials) y algunas piden acero, tela o alquimia.</p>
             <p>🪚 <strong>Tablas</strong> (3 🪵 + 1 🪨) — las piezas de madera las requieren. ⚫ <strong>Carbón</strong> (4 🪵) — combustible de Herrería y Cocina.</p>
-            <p>Se tira <strong>Inteligencia</strong> contra el DC de la pieza y se juega el mini-juego (mismos grados de éxito que el crafteo).</p>
+            <p>Se tira la <strong>herramienta apropiada</strong> contra el DC de la pieza y se juega el mini-juego (mismos grados de éxito que el crafteo).</p>
             <p>⭐ Crítico → pieza + 25% de materiales de vuelta · ✅ Éxito → pieza · ⚠️ Fallo → 50% de vuelta · ❌ Crítico → pierdes todo.</p>
 
             <h3 class="rv-rules-title">🏰 Construcciones (Building)</h3>
@@ -2928,10 +2926,15 @@ import { CraftingSession } from "./session.js";
           }
         },true);
         session.onError = error => {
-          console.error(MODULE_ID,error);
-          ui.notifications.error(error instanceof AggregateError
-            ? "Crafting: no se pudo restaurar todo el inventario. El GM debe revisar la consola / GM inventory review required."
-            : "Crafting: intento cancelado; materiales restaurados / Attempt cancelled; materials restored.");
+          if (error instanceof RollCancelledError) {
+            ui.notifications.info(currentLang === "es" ? "Tirada cancelada: materiales devueltos. Puedes intentar de nuevo." : "Check cancelled: materials returned. You can retry.");
+          } else {
+            console.error(MODULE_ID,error);
+            ui.notifications.error(error instanceof AggregateError
+              ? "Crafting: no se pudo restaurar todo el inventario. El GM debe revisar la consola / GM inventory review required."
+              : "Crafting: intento cancelado; materiales restaurados / Attempt cancelled; materials restored.");
+          }
+          html.find(".rv-gather-grid, .rv-build-grid, #rv-struct-catalog").show();
           gatherPlaying = buildPlaying = structPlaying = scavPlaying = farmBusy = false;
           html.find("#rv-btn-forge, #rv-btn-gather-start, #rv-btn-build-start, #rv-btn-struct-start, #rv-btn-scav-start, #rv-btn-farm-create, #rv-btn-farm-start, #rv-btn-farm-daily, #rv-btn-salvage, #rv-btn-convert-do").prop("disabled",false).show();
           html.find(".rv-forge-icon").remove();
@@ -2947,7 +2950,7 @@ import { CraftingSession } from "./session.js";
           applyLang(html);
         });
 
-        // ── Modificador de crafteo (INT) ──
+        // ── Modificador de la herramienta seleccionada ──
         let craftingSkill = getCraftingMod(actor);
 
         // ── Detección de herramientas de artesano en el inventario ──
@@ -2956,6 +2959,7 @@ import { CraftingSession } from "./session.js";
         const jewelersTools = toolsFor(actor,"joyeria").length > 0;
         const leatherWorkersTools = toolsFor(actor,"trabajo-con-piel").length > 0;
         const hasBuildingTool = toolsFor(actor,"construcciones").length > 0;
+        const hasStructureTool = toolsFor(actor,"edificios").length > 0;
 
         // Recolección, Reciclaje, Cultivos y Despiece no usan herramientas de crafteo:
         // quedan siempre habilitados. El resto se habilita según la herramienta correspondiente.
@@ -2971,7 +2975,7 @@ import { CraftingSession } from "./session.js";
         html.find("#rv-category-screen .rv-cat-btn[data-category='construcciones']")
           .prop("disabled", !hasBuildingTool).attr("title", hasBuildingTool ? "" : STRINGS[currentLang].notifyNoTraining);
         html.find("#rv-category-screen .rv-cat-btn[data-category='edificios']")
-          .prop("disabled", !hasBuildingTool).attr("title", hasBuildingTool ? "" : STRINGS[currentLang].notifyNoTraining);
+          .prop("disabled", !hasStructureTool).attr("title", hasStructureTool ? "" : STRINGS[currentLang].notifyNoTraining);
 
         // ── Variables de estado ──
         let selectedCategory = null;
@@ -2989,6 +2993,27 @@ import { CraftingSession } from "./session.js";
         let selectedStruct = null;
         let selectedStructLvl = 1;
         let structPlaying = false;
+
+        function validateCraftingTool() {
+          const item = actor.items.get(craftingSkill.item?.id);
+          if (craftingSkill.tool && item && Number(item.system?.quantity ?? 1) > 0) return true;
+          ui.notifications.warn(currentLang === "es" ? `Necesitas herramientas apropiadas: ${craftingSkill.label}` : `Appropriate tools required: ${craftingSkill.label}`);
+          return false;
+        }
+        function installToolPicker(selector, category, context) {
+          const row = html.find(selector);
+          const title = currentLang === "es" ? "Herramienta de fabricación" : "Crafting tool";
+          const choices = craftingSkill.candidates;
+          const picker = choices.length ? `<label class="rv-tool-picker">${title}
+            <select aria-label="${title}">${choices.map(tool => `<option value="${escapeHTML(tool.id)}" ${tool.id === craftingSkill.item?.id ? "selected" : ""}>${escapeHTML(tool.name)}</option>`).join("")}</select>
+            </label>` : `<span class="rv-stat-pill danger">${currentLang === "es" ? "Requiere" : "Requires"}: ${craftingSkill.label}</span>`;
+          row.append(picker);
+          row.find("select").on("change",function () {
+            if (session.busy) {this.value = craftingSkill.item?.id ?? ""; return;}
+            craftingSkill = getCraftingMod(actor,category,context,this.value);
+            row.find(".rv-stat-pill").filter(function () {return $(this).text().includes("🛠️");}).html(STRINGS[currentLang].craftPill(craftingSkill.mod,craftingSkill.label,""));
+          });
+        }
 
         // ── NAVEGACIÓN: Selección de categoría ──
         html.find("#rv-category-screen .rv-cat-btn").on("click", function () {
@@ -3272,17 +3297,16 @@ import { CraftingSession } from "./session.js";
           html.find("#rv-gather-status-roll").remove();
 
           // ── Tirada de habilidad ──
-          const mod = getSkillMod(actor, cfg.skillSlug, cfg.skillAbbr);
           let rollTotal = 0;
           try {
-            const roll = await new Roll(`1d20 + ${mod}`).evaluate();
+            const roll = await rollCheck(actor, {skill:cfg.skillAbbr});
             rollTotal = roll.total;
-            await roll.toMessage({
+            await publishCheck(roll, {
               speaker: ChatMessage.getSpeaker({ actor }),
               flavor: `<strong>${G.chatTitle}</strong> (DC ${GATHERING_DC}) — ${G.types[selectedGatherType]} (${G.skills[selectedGatherType]})`,
-            }).catch(error => console.warn(MODULE_ID,"Chat unavailable",error));
+            });
           } catch (err) {
-            console.error("RedVelvet | Error en tirada de recolección:", err);
+            if (!(err instanceof RollCancelledError)) console.error("RedVelvet | Error en tirada de recolección:", err);
             throw err;
 }
           const margin = rollTotal - GATHERING_DC;
@@ -3452,6 +3476,7 @@ import { CraftingSession } from "./session.js";
           const piece = BUILD_PIECES[selectedBuildPiece];
           if (!piece) return;
 
+          craftingSkill = getCraftingMod(actor,"construcciones",{piece:selectedBuildPiece});
           html.find(".rv-build-btn").removeClass("active");
           $(this).addClass("active");
 
@@ -3461,12 +3486,13 @@ import { CraftingSession } from "./session.js";
             <span class="rv-stat-pill">${STRINGS[currentLang].craftPill(craftingSkill.mod, craftingSkill.label, "")}</span>
             <span class="rv-stat-pill ok">📦 → ${materialLabel(piece.item)}</span>
           `);
+          installToolPicker("#rv-build-stats","construcciones",{piece:selectedBuildPiece});
           renderBuildCosts(piece);
           html.find("#rv-build-info").show();
           html.find("#rv-build-icons").empty();
           html.find("#rv-build-status-roll").remove();
           html.find("#rv-build-result").hide().removeClass("critical_success success failure critical_failure");
-          html.find("#rv-btn-build-start").prop("disabled", false).show();
+          html.find("#rv-btn-build-start").prop("disabled", !craftingSkill.tool).show();
           playSound(SFX_NAV.select);
         });
 
@@ -3494,6 +3520,7 @@ import { CraftingSession } from "./session.js";
             return ui.notifications.warn(B.needMats(missing.join(", ")));
           }
 
+          if (!validateCraftingTool()) return;
           // ── Gastar materiales ──
           for (const [mat, need] of Object.entries(piece.cost)) {
             const invItem = matItems[mat];
@@ -3513,15 +3540,15 @@ import { CraftingSession } from "./session.js";
           let rollTotal = 0;
           let naturalRoll = 0;
           try {
-            const roll = await new Roll(`1d20 + ${craftingSkill.mod}`).evaluate();
+            const roll = await rollCheck(actor, craftingSkill);
             rollTotal = roll.total;
-            naturalRoll = roll.dice[0]?.results[0]?.result ?? 10;
-            await roll.toMessage({
+            naturalRoll = naturalD20(roll);
+            await publishCheck(roll, {
               speaker: ChatMessage.getSpeaker({ actor }),
               flavor: `<strong>${B.chatTitle}</strong> (DC ${piece.dc}) — ${B.pieces[selectedBuildPiece]}`,
-            }).catch(error => console.warn(MODULE_ID,"Chat unavailable",error));
+            });
           } catch (err) {
-            console.error("RedVelvet | Error en tirada de construcción:", err);
+            if (!(err instanceof RollCancelledError)) console.error("RedVelvet | Error en tirada de construcción:", err);
             throw err;
 
           }
@@ -3610,7 +3637,7 @@ import { CraftingSession } from "./session.js";
 
             buildPlaying = false;
             html.find(".rv-build-grid").show();
-            html.find("#rv-btn-build-start").prop("disabled", false).show();
+            html.find("#rv-btn-build-start").prop("disabled", !craftingSkill.tool).show();
 
             const BL = STRINGS[currentLang].build;
             const degreeOrder = ["critical_failure", "failure", "success", "critical_success"];
@@ -3736,11 +3763,13 @@ import { CraftingSession } from "./session.js";
         function renderStructInfo() {
           const T = STRINGS[currentLang].struct;
           const dc = structureDC(selectedStruct, selectedStructLvl);
+          craftingSkill = getCraftingMod(actor,"edificios",{structure:selectedStruct},craftingSkill.item?.id);
           html.find("#rv-struct-stats").html(`
             <span class="rv-stat-pill">${STRINGS[currentLang].build.dcPill(dc)}</span>
             <span class="rv-stat-pill">${STRINGS[currentLang].craftPill(craftingSkill.mod, craftingSkill.label, "")}</span>
             <span class="rv-stat-pill ok">${T.prodPill(materialLabel(structureItemName(selectedStruct, selectedStructLvl)))}</span>
           `);
+          installToolPicker("#rv-struct-stats","edificios",{structure:selectedStruct});
           renderStructCosts();
         }
 
@@ -3762,7 +3791,7 @@ import { CraftingSession } from "./session.js";
           html.find("#rv-struct-icons").empty();
           html.find("#rv-struct-status-roll").remove();
           html.find("#rv-struct-result").hide().removeClass("critical_success success failure critical_failure");
-          html.find("#rv-btn-struct-start").prop("disabled", false).show();
+          html.find("#rv-btn-struct-start").prop("disabled", !craftingSkill.tool).show();
           playSound(SFX_NAV.select);
           try { html.find("#rv-struct-info")[0]?.scrollIntoView({ behavior: "smooth", block: "center" }); } catch { /* */ }
         });
@@ -3814,6 +3843,7 @@ import { CraftingSession } from "./session.js";
             return ui.notifications.warn(B.needMats(missing.join(", ")));
           }
 
+          if (!validateCraftingTool()) return;
           // ── Gastar materiales (la estructura previa solo se consume si hay éxito) ──
           for (const [mat, need] of Object.entries(cost)) {
             const invItem = matItems[mat];
@@ -3835,15 +3865,15 @@ import { CraftingSession } from "./session.js";
           let rollTotal = 0;
           let naturalRoll = 0;
           try {
-            const roll = await new Roll(`1d20 + ${craftingSkill.mod}`).evaluate();
+            const roll = await rollCheck(actor, craftingSkill);
             rollTotal = roll.total;
-            naturalRoll = roll.dice[0]?.results[0]?.result ?? 10;
-            await roll.toMessage({
+            naturalRoll = naturalD20(roll);
+            await publishCheck(roll, {
               speaker: ChatMessage.getSpeaker({ actor }),
               flavor: `<strong>${B.chatTitle}</strong> (DC ${dc}) — ${structLabel}`,
-            }).catch(error => console.warn(MODULE_ID,"Chat unavailable",error));
+            });
           } catch (err) {
-            console.error("RedVelvet | Error en tirada de construcción:", err);
+            if (!(err instanceof RollCancelledError)) console.error("RedVelvet | Error en tirada de construcción:", err);
             throw err;
 
           }
@@ -3932,7 +3962,7 @@ import { CraftingSession } from "./session.js";
 
             structPlaying = false;
             html.find("#rv-struct-catalog").show();
-            html.find("#rv-btn-struct-start").prop("disabled", false).show();
+            html.find("#rv-btn-struct-start").prop("disabled", !craftingSkill.tool).show();
 
             const degreeOrder = ["critical_failure", "failure", "success", "critical_success"];
             let degreeIndex = degreeOrder.indexOf(skillDegree);
@@ -4322,19 +4352,18 @@ import { CraftingSession } from "./session.js";
             const state = getFarmState(actor);
             if (!state) return renderFarm();
 
-            const natMod = getSkillMod(actor, "nature", "nat");
             let rollTotal = 0;
             let naturalRoll = 0;
             try {
-              const roll = await new Roll(`1d20 + ${natMod}`).evaluate();
+              const roll = await rollCheck(actor, {skill:"nat"});
               rollTotal = roll.total;
-              naturalRoll = roll.dice[0]?.results[0]?.result ?? 10;
-              await roll.toMessage({
+              naturalRoll = naturalD20(roll);
+              await publishCheck(roll, {
                 speaker: ChatMessage.getSpeaker({ actor }),
                 flavor: `<strong>${F.chatTitle}</strong> (DC ${FARM.dc}) — ${F.dayLabel(state.day + 1, FARM.days)}`,
-              }).catch(error => console.warn(MODULE_ID,"Chat unavailable",error));
+              });
             } catch (err) {
-              console.error("RedVelvet | Error en tirada de cultivo:", err);
+              if (!(err instanceof RollCancelledError)) console.error("RedVelvet | Error en tirada de cultivo:", err);
               throw err;
 
             }
@@ -4434,17 +4463,16 @@ import { CraftingSession } from "./session.js";
           html.find("#rv-scav-status-roll").remove();
 
           // ── Tirada de Supervivencia ──
-          const mod = getSkillMod(actor, "survival", "sur");
           let rollTotal = 0;
           try {
-            const roll = await new Roll(`1d20 + ${mod}`).evaluate();
+            const roll = await rollCheck(actor, {skill:"sur"});
             rollTotal = roll.total;
-            await roll.toMessage({
+            await publishCheck(roll, {
               speaker: ChatMessage.getSpeaker({ actor }),
               flavor: `<strong>${SC.chatTitle}</strong> (DC ${SCAV.dc})`,
-            }).catch(error => console.warn(MODULE_ID,"Chat unavailable",error));
+            });
           } catch (err) {
-            console.error("RedVelvet | Error en tirada de despiece:", err);
+            if (!(err instanceof RollCancelledError)) console.error("RedVelvet | Error en tirada de despiece:", err);
             throw err;
 }
           const margin = rollTotal - SCAV.dc;
@@ -4620,6 +4648,7 @@ import { CraftingSession } from "./session.js";
             return;
           }
 
+          craftingSkill = getCraftingMod(actor,selectedCategory,{item});
           // ── Leer datos del item ──
           const rarityInfo = getRarityInfo(item);
           const itemPrice = priceGP(item);
@@ -4647,8 +4676,9 @@ import { CraftingSession } from "./session.js";
             <span class="rv-stat-pill">${SL.craftPill(craftingSkill.mod, craftingSkill.label, "")}</span>
           `);
 
+          installToolPicker("#rv-stat-row",selectedCategory,{item});
           html.find("#rv-item-info").show();
-          html.find("#rv-btn-forge").show().prop("disabled", false);
+          html.find("#rv-btn-forge").show().prop("disabled", !craftingSkill.tool);
           html.find("#rv-forge-icons").empty();
           html.find("#rv-result-box").hide();
           html.find("#rv-dropzone").html(SL.dropReady(escapeHTML(item.name)));
@@ -4665,6 +4695,7 @@ import { CraftingSession } from "./session.js";
               return ui.notifications.warn(STRINGS[currentLang].notifyNeedBatches(batchCost, currentQty, matLabel));
             }
 
+            if (!validateCraftingTool()) return;
             // Gastar materiales
             await materialsItem.update({ "system.quantity": currentQty - batchCost });
 
@@ -4672,23 +4703,21 @@ import { CraftingSession } from "./session.js";
             html.find("#rv-result-box").hide();
             html.find("#rv-forge-icons").empty();
 
-            // ── Tirada de Inteligencia (herramienta de artesano) ──
+            // ── Tirada nativa de la herramienta apropiada ──
             let rollTotal = 0;
             let naturalRoll = 0;
 
             try {
-              const rollData = actor.getRollData ? actor.getRollData() : {};
-              const formula = `1d20 + ${craftingSkill.mod}`;
-              const roll = await new Roll(formula, rollData).evaluate();
+              const roll = await rollCheck(actor, craftingSkill);
               rollTotal = roll.total;
-              naturalRoll = roll.dice[0]?.results[0]?.result ?? 10;
+              naturalRoll = naturalD20(roll);
 
-              await roll.toMessage({
+              await publishCheck(roll, {
                 speaker: ChatMessage.getSpeaker({ actor }),
                 flavor: `<strong>Crafting Check</strong> (DC ${finalDC}) — <em>${escapeHTML(item.name)}</em>`,
-              }).catch(error => console.warn(MODULE_ID,"Chat unavailable",error));
+              });
             } catch (err) {
-              console.error("RedVelvet | Error en tirada:", err);
+              if (!(err instanceof RollCancelledError)) console.error("RedVelvet | Error en tirada:", err);
               throw err;
 
             }

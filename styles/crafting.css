@@ -28,3 +28,6 @@
  .rv-crafting-dialog *, .rv-crafting-dialog *::before,.rv-crafting-dialog *::after {animation:none!important; transition:none!important; scroll-behavior:auto!important;}
 }
 @media (max-height:760px) {.rv-crafting-dialog {max-height:calc(100vh - 40px)!important;} .rv-crafting-dialog .window-content {max-height:calc(100vh - 100px);}}
+
+.rv-crafting-dialog .rv-tool-picker { display:flex; align-items:center; gap:8px; flex-wrap:wrap; width:100%; color:#e8c96a; font-size:12px; }
+.rv-crafting-dialog .rv-tool-picker select { flex:1; min-width:120px; height:32px; border:1px solid #987432; border-radius:5px; background:#201b17; color:#f6e8cf; }

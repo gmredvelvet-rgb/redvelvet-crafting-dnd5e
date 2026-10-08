@@ -1,0 +1,63 @@
+{
+  "id": "redvelvet-crafting-dnd5e",
+  "title": "RedVelvet Crafting System — D&D 5e",
+  "description": "Taller de crafting D&D5e: cinco oficios, recolección, reciclaje, construcciones, cultivos y despiece. Mini-juegos de precisión según tiradas, recursos visuales locales, sonidos originales y autenticación Patreon con soft gate. Foundry v13/v14, interfaz ES/EN.",
+  "version": "1.1.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "14",
+    "maximum": "14"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "4.4.0"
+        }
+      }
+    ],
+    "recommends": [
+      {
+        "id": "velvet-license-hub",
+        "type": "module",
+        "manifest": "https://github.com/gmredvelvet-rgb/velvet-license-hub/releases/latest/download/module.json",
+        "compatibility": {
+          "minimum": "2.0.0"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/crafting-dialog.js",
+    "scripts/license/boot.js"
+  ],
+  "packs": [],
+  "languages": [
+    {
+      "lang": "es",
+      "name": "Español",
+      "path": "lang/es.json"
+    },
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "license": "MIT",
+  "styles": [
+    "styles/crafting.css",
+    "styles/license.css"
+  ],
+  "authors": [
+    {
+      "name": "GM RedVelvet",
+      "url": "https://github.com/gmredvelvet-rgb"
+    }
+  ],
+  "url": "https://github.com/gmredvelvet-rgb/redvelvet-crafting-dnd5e",
+  "manifest": "https://github.com/gmredvelvet-rgb/redvelvet-crafting-dnd5e/releases/latest/download/module.json",
+  "download": "https://github.com/gmredvelvet-rgb/redvelvet-crafting-dnd5e/releases/download/v1.1.0/redvelvet-crafting-dnd5e.zip"
+}

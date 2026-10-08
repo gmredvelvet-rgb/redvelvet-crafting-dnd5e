@@ -1,0 +1,25 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RedVelvet Crafting D&D5e — QA preview</title><base href="/">
+<link rel="stylesheet" href="../styles/crafting.css">
+<style>body{background:#181a20;color:#e8e4da;font:15px system-ui;margin:24px;display:flex;gap:28px;align-items:flex-start;}aside{max-width:330px;}aside button{display:block;margin:12px 0;padding:10px 18px;background:#352e23;border:1px solid #9b8143;border-radius:8px;color:#ffe6aa;cursor:pointer;} .app{border:1px solid #9b8143;border-radius:12px;overflow:hidden;box-shadow:0 20px 65px #0007;width:430px;} .window-header{padding:12px;background:#30271d;font-size:15px;}#notices{font-size:13px;}p{line-height:1.6;}@media(max-width:800px){body{flex-direction:column;}}</style>
+<aside><h1>RedVelvet Crafting</h1><p>Vista de QA con inventario simulado. Se carga el código real del módulo. No modifica un mundo de Foundry.</p><button id="open">Abrir taller</button><button id="recipe">Cargar receta de espada</button><label>Tirada natural <select id="die"><option>20</option><option>10</option><option>1</option></select></label><button id="close">Cerrar y comprobar devolución</button><p id="inventory"></p><p id="notices" role="status"></p></aside>
+<script src="../node_modules/jquery/dist/jquery.min.js"></script>
+<script type="module">
+import {installEnvironment,item} from "../tests/fixture.mjs";
+const env=installEnvironment({window,jquery:window.jQuery,generation:14});
+await env.seed();
+await env.actor.createEmbeddedDocuments("Item",["Alchemist's Supplies","Jeweler's Tools","Leatherworker's Tools","Tinker's Tools"].map(name=>({name,type:"tool",system:{quantity:1}})));
+await import("../scripts/crafting-dialog.js");await env.fire("init");await env.fire("ready");
+const recipe=item(env.actor,{name:"Longsword",type:"weapon",img:"modules/redvelvet-crafting-dnd5e/assets/icons/blacksmith-materials.svg",system:{quantity:50,price:{value:10,denomination:"gp"},rarity:"common"}});
+env.documents=new Map([[recipe.uuid,recipe]]);
+let app;
+document.querySelector('#open').onclick=()=>{app=window.openCraftingDialog();};
+document.querySelector('#recipe').onclick=()=>{
+  if(!app)return;
+  const event=new Event("drop",{bubbles:true,cancelable:true});event.dataTransfer={getData:()=>JSON.stringify({type:"Item",uuid:recipe.uuid})};app.element.querySelector('#rv-dropzone').dispatchEvent(event);
+};
+document.querySelector('#close').onclick=async()=>{if(app){await app.close();app=null;}};
+document.querySelector('#die').onchange=event=>env.rollResult=Number(event.target.value);
+setInterval(()=>{document.querySelector('#inventory').textContent=`Materiales de herrería: ${env.actor.items.find(it=>it.name==='Blacksmith Materials').system.quantity} · Espadas fabricadas: ${env.actor.items.filter(it=>it.name==='Longsword').length}`;document.querySelector('#notices').textContent=env.notices.at(-1)??'';},500);
+document.querySelector('#open').click();
+</script></html>

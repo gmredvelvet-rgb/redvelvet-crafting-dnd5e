@@ -1,6 +1,7 @@
 RedVelvet Crafting — D&D5e 1.1.0 prepara el taller para Foundry v13/v14 y conserva sus oficios, recolección, construcción, cultivos, despiece y reglas homebrew.
 
 - **Modo Core (nuevo, por defecto):** taller sencillo en el que el jugador elige un oficio, busca el objeto, paga la mitad de su precio en monedas, tira y juega el mini-juego. El taller completo pasa a ser el modo **Extendido** y se activa en el ajuste de mundo "Modo de crafteo".
+- Diseño compartido con PF2e en Core y Extendido: tarjetas ilustradas, catálogo con búsqueda, pasos de fabricación y avisos de precisión.
 - Arte propio de la edición PF2e reutilizado localmente: 13 fondos y 15 SVG, más una portada nueva.
 - 20 efectos sonoros originales, diferenciados por actividad y con volumen por usuario.
 - Herramientas apropiadas por receta, selector y tiradas nativas D&D5e con característica configurable, competencia, pericia, bonos y ventaja/desventaja. Cancelar devuelve materiales y permite reintentar.
@@ -8,7 +9,7 @@ RedVelvet Crafting — D&D5e 1.1.0 prepara el taller para Foundry v13/v14 y cons
 - Correcciones de pilas duplicadas, doble clic, temporizadores al cerrar, recuperación de inventario y tiradas de respaldo.
 - Soft gate Patreon con Velvet License Hub opcional: crafting funciona durante la prueba gratuita y durante fallos de autenticación.
 
-Pruebas automatizadas: **39 aprobadas**, más revisión en navegador sobre un inventario simulado. GitHub Actions valida el código y genera el paquete.
+Pruebas automatizadas: **42 aprobadas**, más revisión en navegador sobre un inventario simulado. GitHub Actions valida el código y genera el paquete.
 
 **Candidato en borrador:** faltan las pruebas en mundos reales de Foundry v13 y v14 y OAuth Patreon real descritas en `docs/RELEASE-QA.md`. No se anuncian esas comprobaciones como realizadas.
 

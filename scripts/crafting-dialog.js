@@ -1,3 +1,4 @@
+import { applyWorkshopIcons } from "./presentation.js";
 import { ASSETS, MODULE_ID } from "./assets.js";
 import { priceGP, batchCost as batchCostFor, degreeOfSuccess, craftingModifier, toolsFor, craftedItemData, escapeHTML, rollCheck, publishCheck, naturalD20, RollCancelledError } from "./dnd5e-adapter.js";
 import { SFX_NAV, SFX_HIT, SFX_MISS, playSound, registerAudioSettings } from "./audio.js";
@@ -2942,13 +2943,13 @@ import { MODES, craftingMode, registerCoreMode, openCore, coinLabel, coinsFor, p
         };
 
         // ── Aplicar idioma inicial ──
-        applyLang(html);
+        applyLang(html); applyWorkshopIcons(html);
 
         // ── Selector de idioma ──
         html.find("#rv-lang-toggle").on("click", () => {
           currentLang = currentLang === "es" ? "en" : "es";
           try { localStorage.setItem("rv-crafting-lang", currentLang); } catch { /* */ }
-          applyLang(html);
+          applyLang(html); applyWorkshopIcons(html);
         });
 
         // ── Modificador de la herramienta seleccionada ──

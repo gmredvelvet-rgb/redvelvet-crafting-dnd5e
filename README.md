@@ -11,6 +11,8 @@ El módulo tiene dos talleres y el GM elige cuál se usa en **Configuración →
 
 `/craft` y `api.open()` abren el modo elegido. `api.openCore()` y `api.openExtended()` fuerzan uno.
 
+Los dos modos comparten su diseño con la edición PF2e: portada del taller, tarjetas ilustradas, iconos, colores, foco y sonidos. Core incorpora búsqueda con limpieza rápida, contador de recetas, pasos de fabricación y tres golpes numerados con avisos «Ahora», «Tarde», «Acierto» y «Fallo». Cada sistema conserva sus tiradas, habilidades y reglas de inventario. Véase [verificación visual compartida](docs/VISUAL-QA.md).
+
 ## Uso (modo Extendido)
 
 1. Activa el módulo en un mundo D&D5e. Usa una versión del sistema compatible con tu Foundry: la serie 4.4/5 en v13, la serie 6 en v14.

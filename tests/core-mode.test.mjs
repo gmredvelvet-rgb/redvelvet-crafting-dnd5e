@@ -261,3 +261,14 @@ test("the world setting chooses the workshop: core by default, extended on reque
   assert.equal(env.dialogs.length,before+1);
   await env.dialogs.at(-1).close();
 });
+
+test("Core presentation exposes clear search, empty results and the live strike cue",async()=>{
+  const f=await workshop(14,{tools:true});f.app=f.api.openCore();await f.until(()=>f.query('.rvc'));
+  assert.equal(f.all('.rvc-cats>button').length,6);f.query('[data-category="herreria"]').click();await f.until(()=>f.query('.rvc-row'));
+  f.query('.rvc-search').value='missing';f.query('.rvc-search').dispatchEvent(new f.app.element.ownerDocument.defaultView.Event('input'));
+  assert.equal(f.query('.rvc-empty').hidden,false);f.query('[data-act="clear"]').click();assert.equal(f.query('.rvc-empty').hidden,true);assert.ok(f.query('.rvc-row'));
+  f.query('.rvc-row').click();await f.until(()=>f.app.screen==='bench');f.query('.rvc-craft').click();await f.until(()=>f.query('.rvc-strike'));
+  f.advance(3000);assert.match(f.query('.rvc-phase').textContent,/Bench.Now/);assert.equal(f.query('.rvc-strike').tagName,'BUTTON');
+  assert.equal(f.query('[data-step="play"]').getAttribute('aria-current'),'step');
+  await f.app.close();await f.until(()=>!f.app.busy);
+});

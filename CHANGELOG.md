@@ -2,6 +2,10 @@
 
 ## 1.1.0 — 2026-10-07
 
+- Diseño unificado con PF2e para los talleres Core y Extendido: misma portada, tarjetas ilustradas, iconografía, colores y sonidos.
+- Core muestra pasos de fabricación, búsqueda con contador y limpieza, ficha de receta y tres golpes numerados con indicaciones de precisión.
+- Navegación protegida durante fabricación y selección de recetas; foco de teclado y movimiento reducido en la presentación compartida.
+
 - Modo Core: taller sencillo y nuevo modo por defecto. El jugador elige un oficio, busca el objeto en los compendios que puede ver (o lo arrastra), paga la mitad de su precio en monedas, tira y juega el mini-juego de tres golpes.
 - Ajuste de mundo "Modo de crafteo" para elegir entre Core y Extendido (el taller completo de siempre).
 - Core usa la tirada nativa de D&D5e: la herramienta de artesano adecuada si el personaje la tiene, Inteligencia si no. Cancelar la tirada devuelve las monedas.

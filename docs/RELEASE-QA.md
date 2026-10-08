@@ -3,7 +3,7 @@
 ## Completado
 
 - [x] Pruebas automatizadas del código real de la interfaz con adaptadores de APIs v13/v14.
-- [x] 32 casos: inventario, doble clic, cancelar, escritura fallida, herramientas, costes, grados, fabricación, conversión, recolección, estructuras, cultivo, despiece y soft gate.
+- [x] 42 casos: inventario, doble clic, cancelar, escritura fallida, herramientas, costes, grados, fabricación, conversión, recolección, estructuras, cultivo, despiece y soft gate.
 - [x] Referencias de fondos, SVG, OGG, JS, CSS e idiomas locales completas.
 - [x] Sin dependencia de audio de BG3, Dice So Nice, Maestro o carpetas de un mundo.
 - [x] Registro del ID del módulo presente en la fuente del backend de licencia consultada.
@@ -30,3 +30,5 @@ No se ha ejecutado un mundo de Foundry v13 ni un mundo D&D5e v14 durante esta pr
 - [ ] Instalar ZIP en carpeta vacía y comprobar que el manifiesto publicado descarga ese mismo paquete.
 
 Publicar el borrador GitHub después de registrar estos resultados. Al publicar, el enlace `/releases/latest/download/module.json` será utilizable por Foundry. El estado draft conserva la posibilidad de corregir el paquete antes de anunciarlo.
+
+Actualización del diseño compartido de Core y Extendido: [VISUAL-QA.md](VISUAL-QA.md).

@@ -25,6 +25,8 @@ Las tiradas llaman `Actor5e.rollToolCheck` o `rollSkill` con configuración por 
 
 La fuente del backend de licencias consultada contiene el ID D&D5e en `MODULE_FEATURES`. La comprobación no es una autenticación Patreon real ni certifica el estado de despliegue del servidor.
 
-Validación automatizada: 32 casos de lógica, inventario y aplicación con adaptadores v13/v14; referencias locales y sintaxis de todo el runtime. Hay cobertura de fabricación, conversión, recolección, piezas, mejora de estructuras, ciclo de cultivo, bonus de despiece, restauración de reciclaje y fallo del gate. Las pruebas que fuerzan errores de chat, escritura y servidor de licencia producen avisos esperados en la consola del runner.
+Validación automatizada: 42 casos de lógica, inventario y aplicación con adaptadores v13/v14; referencias locales y sintaxis de todo el runtime. Hay cobertura de fabricación, conversión, recolección, piezas, mejora de estructuras, ciclo de cultivo, bonus de despiece, restauración de reciclaje y fallo del gate. Las pruebas que fuerzan errores de chat, escritura y servidor de licencia producen avisos esperados en la consola del runner.
 
 Los aspectos que dependen de una sesión real —dos generaciones de Foundry, sockets entre clientes, OAuth Patreon y comportamiento visual del sistema instalado— están en [RELEASE-QA.md](RELEASE-QA.md). No se presenta una simulación como prueba de un mundo real.
+
+Actualización del diseño compartido de Core y Extendido: [VISUAL-QA.md](VISUAL-QA.md).

@@ -31,3 +31,6 @@
 
 .rv-crafting-dialog .rv-tool-picker { display:flex; align-items:center; gap:8px; flex-wrap:wrap; width:100%; color:#e8c96a; font-size:12px; }
 .rv-crafting-dialog .rv-tool-picker select { flex:1; min-width:120px; height:32px; border:1px solid #987432; border-radius:5px; background:#201b17; color:#f6e8cf; }
+
+.rv-crafting-dialog .rv-activity-icon {display:block;flex:none;width:32px;height:32px;object-fit:contain;border:0;padding:0;margin:0;pointer-events:none;}
+.rv-crafting-dialog .rv-struct-btn .rv-activity-icon {width:22px;height:22px;margin-right:6px;}

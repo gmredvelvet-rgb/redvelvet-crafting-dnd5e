@@ -7,6 +7,7 @@
 - Core usa la tirada nativa de D&D5e: la herramienta de artesano adecuada si el personaje la tiene, Inteligencia si no. Cancelar la tirada devuelve las monedas.
 - Tres aciertos entregan el objeto; dos devuelven la mitad de las monedas, uno un tercio.
 - El botín (gemas, bienes comerciales) y los objetos sin precio no se pueden fabricar en Core.
+- `/craft` funciona en Foundry v14, que envía el mensaje del chat como HTML; si el taller falla al abrir, se muestra el motivo.
 - API: `api.open()` sigue el ajuste; `api.openCore()` y `api.openExtended()` fuerzan un modo.
 - Compatibilidad de APIs Foundry v13/v14 con selección segura de Dialog y AudioHelper.
 - Fondos e iconos locales reutilizados de la edición PF2e; portada de taller nueva.

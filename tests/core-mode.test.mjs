@@ -247,4 +247,17 @@ test("the world setting chooses the workshop: core by default, extended on reque
   await dialog.close();
   assert.equal(api.openExtended(),env.dialogs.at(-1));
   await env.dialogs.at(-1).close();
+  // The chat command is recognised as plain text (v13) and as the HTML Foundry v14 sends.
+  const [onChat]=env.hooks.get("chatMessage");
+  for(const text of ["/craft","<p>/craft</p>","<p> /CRAFT </p>"]) {
+    const before=env.dialogs.length;
+    assert.equal(onChat({},text,{}),false,text);
+    assert.equal(env.dialogs.length,before+1);
+    await env.dialogs.at(-1).close();
+  }
+  for(const text of ["hello","<p>/crafting</p>","<p>I like /craft</p>"]) assert.equal(onChat({},text,{}),true,text);
+  const before=env.dialogs.length;
+  assert.equal(onChat({},"<p>/craft</p>",{}),false);
+  assert.equal(env.dialogs.length,before+1);
+  await env.dialogs.at(-1).close();
 });

@@ -2992,7 +2992,7 @@ import { CraftingSession } from "./session.js";
 
         // ── NAVEGACIÓN: Selección de categoría ──
         html.find("#rv-category-screen .rv-cat-btn").on("click", function () {
-          const cat = $(this).data("category");
+          const cat = $(this).data("category"); html[0].scrollTop = 0;
           craftingSkill = getCraftingMod(actor,cat);
           if (cat === "reglas") {
             html.find("#rv-category-screen").hide();
@@ -3099,14 +3099,14 @@ import { CraftingSession } from "./session.js";
         // Volver desde reglas — delegado porque applyLang reconstruye el contenido
         html.find("#rv-rules-screen").on("click", "#rv-btn-back-rules", () => {
           html.find("#rv-rules-screen").hide();
-          html.find("#rv-category-screen").show();
+          html.find("#rv-category-screen").show(); html[0].scrollTop = 0;
           playSound(SFX_NAV.back);
         });
 
         // Volver desde forja
         html.find("#rv-btn-back-forge").on("click", () => {
           html.find("#rv-forge-screen").hide();
-          html.find("#rv-category-screen").show();
+          html.find("#rv-category-screen").show(); html[0].scrollTop = 0;
           draggedItem = null;
           playSound(SFX_NAV.back);
         });
@@ -3119,7 +3119,7 @@ import { CraftingSession } from "./session.js";
         html.find("#rv-btn-back-gather").on("click", () => {
           if (gatherPlaying) return;
           html.find("#rv-gather-screen").hide();
-          html.find("#rv-category-screen").show();
+          html.find("#rv-category-screen").show(); html[0].scrollTop = 0;
           selectedGatherType = null;
           playSound(SFX_NAV.back);
         });
@@ -3424,7 +3424,7 @@ import { CraftingSession } from "./session.js";
         html.find("#rv-btn-back-build").on("click", () => {
           if (buildPlaying) return;
           html.find("#rv-build-screen").hide();
-          html.find("#rv-category-screen").show();
+          html.find("#rv-category-screen").show(); html[0].scrollTop = 0;
           selectedBuildPiece = null;
           playSound(SFX_NAV.back);
         });
@@ -3699,7 +3699,7 @@ import { CraftingSession } from "./session.js";
         html.find("#rv-btn-back-struct").on("click", () => {
           if (structPlaying) return;
           html.find("#rv-struct-screen").hide();
-          html.find("#rv-category-screen").show();
+          html.find("#rv-category-screen").show(); html[0].scrollTop = 0;
           selectedStruct = null;
           playSound(SFX_NAV.back);
         });
@@ -4029,7 +4029,7 @@ import { CraftingSession } from "./session.js";
         // Volver desde reciclaje
         html.find("#rv-btn-back-salvage").on("click", () => {
           html.find("#rv-salvage-screen").hide();
-          html.find("#rv-category-screen").show();
+          html.find("#rv-category-screen").show(); html[0].scrollTop = 0;
           salvageItem = null;
           playSound(SFX_NAV.back);
         });
@@ -4165,7 +4165,7 @@ import { CraftingSession } from "./session.js";
         html.find("#rv-btn-back-farm").on("click", () => {
           if (farmBusy) return;
           html.find("#rv-farm-screen").hide();
-          html.find("#rv-category-screen").show();
+          html.find("#rv-category-screen").show(); html[0].scrollTop = 0;
           playSound(SFX_NAV.back);
         });
 
@@ -4403,7 +4403,7 @@ import { CraftingSession } from "./session.js";
         html.find("#rv-btn-back-scav").on("click", () => {
           if (scavPlaying) return;
           html.find("#rv-scav-screen").hide();
-          html.find("#rv-category-screen").show();
+          html.find("#rv-category-screen").show(); html[0].scrollTop = 0;
           playSound(SFX_NAV.back);
         });
 

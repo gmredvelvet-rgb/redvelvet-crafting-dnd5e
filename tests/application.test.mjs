@@ -23,6 +23,8 @@ for(const generation of [13,14]) test(`v${generation}: actual UI launch, ownersh
   assert.equal(env.actor.items.find(it=>it.name==="Food Supplies").system.quantity,1999);
   const rations=env.actor.items.find(it=>it.flags?.[MODULE_ID]?.material==="Monster Rations");
   assert.equal(rations.system.quantity,1);assert.equal(rations.type,"consumable");assert.equal(rations.system.bulk,undefined);
+  dialog.element.querySelector('.window-content').scrollTop=120;
+  click('#rv-btn-back-gather');assert.equal(dialog.element.querySelector('.window-content').scrollTop,0);
   await dialog.close();
   game.user.isGM=false;env.actor.isOwner=false;
   api.open();assert.equal(env.dialogs.length,1);assert.match(env.notices.at(-1),/ownership/);

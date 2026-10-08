@@ -43,7 +43,7 @@ export function installEnvironment({window,jquery,generation=14}) {
   const hooks=new Map(),settings=new Map(),notices=[],chat=[],sounds=[];
   const a=actor();
   const modules=new Map([[MODULE_ID,{id:MODULE_ID,active:true,title:"RedVelvet Crafting"}]]);
-  const env={actor:a,notices,chat,sounds,rollResult:20,rollCount:0,hooks,dialogs:[]};
+  const env={settingDefaults:new Map(),actor:a,notices,chat,sounds,rollResult:20,rollCount:0,hooks,dialogs:[]};
   const Hooks={once:(event,fn)=>{(hooks.get(event)??hooks.set(event,[]).get(event)).push(fn);},on:(event,fn)=>{(hooks.get(event)??hooks.set(event,[]).get(event)).push(fn);}};
   class Dialog {
     constructor(data,options={}) {this.data=data;this.options={...options};env.dialogs.push(this);}
@@ -81,7 +81,7 @@ export function installEnvironment({window,jquery,generation=14}) {
   a.rollSkill=(...args)=>nativeCheck("skill",...args);
   a.rollToolCheck=(...args)=>nativeCheck("tool",...args);
   a.rollAbilityCheck=(...args)=>nativeCheck("ability",...args);
-  const game={view:"game",release:{generation},system:{id:"dnd5e",version:generation===14 ? "6.0.5" : "4.4.0"},modules,user:{id:"gm",name:"GM",isGM:true,character:a},users:[{id:"gm",active:true,isGM:true}],i18n:{lang:"es",localize:key=>key,format:(key,data)=>key},settings:{register:(id,key,def)=>settings.set(`${id}.${key}`,def.default),registerMenu:()=>{},get:(id,key)=>settings.get(`${id}.${key}`),set:async(id,key,value)=>settings.set(`${id}.${key}`,value)}};
+  const game={view:"game",release:{generation},system:{id:"dnd5e",version:generation===14 ? "6.0.5" : "4.4.0"},modules,user:{id:"gm",name:"GM",isGM:true,character:a},users:[{id:"gm",active:true,isGM:true}],i18n:{lang:"es",localize:key=>key,format:(key,data)=>key},settings:{register:(id,key,def)=>{env.settingDefaults.set(`${id}.${key}`,def);settings.set(`${id}.${key}`,key==="craftingMode" ? (Object.hasOwn(env,"craftingMode") ? env.craftingMode ?? def.default : "extended") : def.default);},registerMenu:()=>{},get:(id,key)=>settings.get(`${id}.${key}`),set:async(id,key,value)=>settings.set(`${id}.${key}`,value)}};
   const AudioHelper={play:async data=>sounds.push(data)};
   const globals={window,document:window.document,localStorage:window.localStorage,$:jquery,Hooks,game,canvas:{tokens:{controlled:[{actor:a}]}},ui:{notifications:{warn:msg=>notices.push(msg),error:msg=>notices.push(msg),info:msg=>notices.push(msg)}},Roll,ChatMessage:{getSpeaker:()=>({actor:a.id}),create:async data=>{if(env.failChat)throw Error("chat failed");chat.push(data);}},fromUuid:async uuid=>env.documents?.get(uuid)};
   globals.foundry=generation===14 ? {appv1:{api:{Dialog}},audio:{AudioHelper},applications:{api:{ApplicationV2:class{}}}} : {applications:{api:{ApplicationV2:class{}}},audio:{AudioHelper}};

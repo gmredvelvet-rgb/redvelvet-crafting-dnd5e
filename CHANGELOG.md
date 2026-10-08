@@ -2,6 +2,12 @@
 
 ## 1.1.0 — 2026-10-07
 
+- Modo Core: taller sencillo y nuevo modo por defecto. El jugador elige un oficio, busca el objeto en los compendios que puede ver (o lo arrastra), paga la mitad de su precio en monedas, tira y juega el mini-juego de tres golpes.
+- Ajuste de mundo "Modo de crafteo" para elegir entre Core y Extendido (el taller completo de siempre).
+- Core usa la tirada nativa de D&D5e: la herramienta de artesano adecuada si el personaje la tiene, Inteligencia si no. Cancelar la tirada devuelve las monedas.
+- Tres aciertos entregan el objeto; dos devuelven la mitad de las monedas, uno un tercio.
+- El botín (gemas, bienes comerciales) y los objetos sin precio no se pueden fabricar en Core.
+- API: `api.open()` sigue el ajuste; `api.openCore()` y `api.openExtended()` fuerzan un modo.
 - Compatibilidad de APIs Foundry v13/v14 con selección segura de Dialog y AudioHelper.
 - Fondos e iconos locales reutilizados de la edición PF2e; portada de taller nueva.
 - 20 efectos sonoros originales con volumen y activación por usuario.

@@ -2,7 +2,16 @@
 
 Taller de crafting para Foundry VTT **v13 y v14**, con interfaz ES/EN. Cinco oficios, recolección, reciclaje, piezas de construcción, 23 estructuras con tres niveles, cultivos y despiece. Las tiradas determinan la ventana de precisión de los mini-juegos.
 
-## Uso
+## Modos: Core y Extendido
+
+El módulo tiene dos talleres y el GM elige cuál se usa en **Configuración → RedVelvet Crafting → Modo de crafteo**:
+
+- **Core (por defecto):** el taller sencillo. El jugador elige un oficio, busca el objeto en los compendios que puede ver (o lo arrastra a la ventana), paga **la mitad de su precio en monedas**, hace la tirada y juega el mini-juego de tres golpes. Tres aciertos entregan el objeto; dos devuelven la mitad de las monedas, uno un tercio y ninguno nada. No usa materiales ni exige herramientas: si el personaje lleva la herramienta de artesano adecuada se tira con ella, y si no, con Inteligencia. El botín (gemas, bienes comerciales) y los objetos sin precio no se pueden fabricar.
+- **Extendido:** el taller completo descrito en el resto de este documento, con materiales por oficio, herramientas, recolección, reciclaje, construcciones, cultivos y despiece.
+
+`/craft` y `api.open()` abren el modo elegido. `api.openCore()` y `api.openExtended()` fuerzan uno.
+
+## Uso (modo Extendido)
 
 1. Activa el módulo en un mundo D&D5e. Usa una versión del sistema compatible con tu Foundry: la serie 4.4/5 en v13, la serie 6 en v14.
 2. Selecciona un token que controles o asigna tu personaje de usuario.

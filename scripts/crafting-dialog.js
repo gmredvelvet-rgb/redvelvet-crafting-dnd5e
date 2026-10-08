@@ -2,6 +2,7 @@ import { ASSETS, MODULE_ID } from "./assets.js";
 import { priceGP, batchCost as batchCostFor, degreeOfSuccess, craftingModifier, toolsFor, craftedItemData, escapeHTML, rollCheck, publishCheck, naturalD20, RollCancelledError } from "./dnd5e-adapter.js";
 import { SFX_NAV, SFX_HIT, SFX_MISS, playSound, registerAudioSettings } from "./audio.js";
 import { CraftingSession } from "./session.js";
+import { MODES, craftingMode, registerCoreMode, openCore, coinLabel, coinsFor, payFromPurse, purseValue } from "./core-crafting.js";
 
 /**
  * RedVelvet Crafting System — D&D 5e Edition
@@ -4903,13 +4904,71 @@ import { CraftingSession } from "./session.js";
   }
 
   // ── Exponer globalmente y registrar comando de chat ──
-  window.openCraftingDialog = openCraftingDialog;
+  // ── Modo Core: taller sencillo por defecto; el taller completo se activa en los ajustes ──
+  const coreT = (key, data) => game.i18n.format(`${MODULE_ID}.Core.${key}`, data ?? {});
+  const CORE_RARITIES = ["common", "uncommon", "rare", "veryrare", "legendary", "artifact"];
+  const coreAdapter = {
+    moduleId: MODULE_ID, t: coreT, menuBg: ASSETS.bg.menu, rulesBg: ASSETS.bg.rules,
+    categories: {
+      herreria: {bg: ASSETS.bg.blacksmith, icon: ASSETS.icon["blacksmith-materials"]},
+      alquimia: {bg: ASSETS.bg.alchemy, icon: ASSETS.icon["alchemy-materials"]},
+      joyeria: {bg: ASSETS.bg.jewelry, icon: ASSETS.icon["jewelry-materials"]},
+      "trabajo-con-piel": {bg: ASSETS.bg.leatherwork, icon: ASSETS.icon["leatherwork-materials"]},
+      "equipo-vario": {bg: ASSETS.bg.equipment, icon: ASSETS.icon["crafting-materials"]}
+    },
+    // Loot (gems, trade goods) sells for its full price, so half-price crafting would mint coin.
+    itemTypes: ["weapon", "equipment", "consumable", "tool", "container"],
+    indexFields: ["system.price", "system.rarity", "system.type.value", "system.type.baseItem", "system.armor.type"],
+    detectCategory,
+    priceCp: item => Math.round(priceGP(item) * 100),
+    dc: item => getDCforPrice(priceGP(item)),
+    rank: item => Math.round(priceGP(item) * 100),
+    meta: item => {
+      const rarity = String(item.system?.rarity ?? "").toLowerCase().replace(/s+/g, "");
+      return [CORE_RARITIES.includes(rarity) ? coreT(`Rarity.${rarity}`) : "", coreT("Meta.Price", {price: coinLabel(Math.round(priceGP(item) * 100), coreT)})].filter(Boolean).join(" · ");
+    },
+    funds: actor => purseValue(actor.system?.currency),
+    pay: async (actor, cp) => {
+      const purse = payFromPurse(actor.system?.currency, cp);
+      if (!purse) return false;
+      await actor.update({"system.currency": purse});
+      return true;
+    },
+    refund: async (actor, cp) => {
+      const purse = actor.system?.currency ?? {};
+      await actor.update(Object.fromEntries(Object.entries(coinsFor(cp)).filter(([, amount]) => amount > 0)
+        .map(([coin, amount]) => [`system.currency.${coin}`, (Number(purse[coin]) || 0) + amount])));
+    },
+    // The native check: the artisan tool that fits the item when the actor owns one, Intelligence otherwise.
+    roll: async (actor, category, item, dc) => {
+      const check = craftingModifier(actor, category, {item});
+      let roll;
+      try { roll = await rollCheck(actor, check.tool ? {...check, required: false} : {ability: "int"}); }
+      catch (error) { if (error instanceof RollCancelledError) return null; throw error; }
+      await publishCheck(roll, {speaker: ChatMessage.getSpeaker({actor}), flavor: `<strong>${escapeHTML(coreT("Chat.Check"))}</strong> (${escapeHTML(coreT("Bench.DC", {dc}))}) — <em>${escapeHTML(item.name)}</em>`});
+      return {total: roll.total, natural: naturalD20(roll)};
+    },
+    itemData: craftedItemData,
+    sound: (kind, category) => playSound(kind === "hit" ? SFX_HIT[category] : kind === "miss" ? SFX_MISS[category] : SFX_NAV[kind])
+  };
+  registerCoreMode(MODULE_ID);
+
+  function openCore5e(options = {}) {
+    if (game.system.id !== "dnd5e") return void ui.notifications.warn(STRINGS[currentLang].notifyNoSystem);
+    return openCore(coreAdapter, options);
+  }
+  /** Opens the workshop the GM chose in the settings; `options.mode` forces one. */
+  function openCrafting(options = {}) {
+    return (options.mode ?? craftingMode(MODULE_ID)) === MODES.EXTENDED ? openCraftingDialog(options) : openCore5e(options);
+  }
+
+  window.openCraftingDialog = openCrafting;
   Hooks.once("init",registerAudioSettings);
-  Hooks.once("ready", () => {const module=game.modules.get(MODULE_ID); if (module) module.api={open:openCraftingDialog};});
+  Hooks.once("ready", () => {const module=game.modules.get(MODULE_ID); if (module) module.api={open:openCrafting,openCore:openCore5e,openExtended:openCraftingDialog};});
 
   Hooks.on("chatMessage", (chatLog, message, chatData) => {
     if ((message ?? "").trim().toLowerCase() === "/craft") {
-      openCraftingDialog();
+      openCrafting();
       return false;
     }
     return true;

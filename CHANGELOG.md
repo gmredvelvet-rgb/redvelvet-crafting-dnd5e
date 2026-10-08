@@ -13,6 +13,7 @@
 - El botín (gemas, bienes comerciales) y los objetos sin precio no se pueden fabricar en Core.
 - `/craft` funciona en Foundry v14, que envía el mensaje del chat como HTML; si el taller falla al abrir, se muestra el motivo.
 - API: `api.open()` sigue el ajuste; `api.openCore()` y `api.openExtended()` fuerzan un modo.
+- Compatibilidad declarada: Foundry v13 como mínimo y 14.999 como máximo.
 - Compatibilidad de APIs Foundry v13/v14 con selección segura de Dialog y AudioHelper.
 - Fondos e iconos locales reutilizados de la edición PF2e; portada de taller nueva.
 - 20 efectos sonoros originales con volumen y activación por usuario.

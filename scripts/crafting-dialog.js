@@ -4967,8 +4967,12 @@ import { MODES, craftingMode, registerCoreMode, openCore, coinLabel, coinsFor, p
   Hooks.once("ready", () => {const module=game.modules.get(MODULE_ID); if (module) module.api={open:openCrafting,openCore:openCore5e,openExtended:openCraftingDialog};});
 
   Hooks.on("chatMessage", (chatLog, message, chatData) => {
-    if ((message ?? "").trim().toLowerCase() === "/craft") {
-      openCrafting();
+    // Foundry v14 sends the chat input as HTML ("<p>/craft</p>"); earlier versions send plain text.
+    const command = String(message ?? "").replace(/<[^>]*>/g, "").trim().toLowerCase();
+    if (command === "/craft") {
+      // A failure to open must not fall through to Foundry's "not a valid chat message command".
+      try { openCrafting(); }
+      catch (error) { console.error(MODULE_ID, error); ui.notifications.error(`RedVelvet Crafting: ${error?.message ?? error}`); }
       return false;
     }
     return true;

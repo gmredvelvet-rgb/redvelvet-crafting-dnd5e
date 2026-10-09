@@ -16,6 +16,10 @@ for(const generation of [13,14]) test(`v${generation}: actual UI launch, ownersh
   assert.equal(api.open(),dialog);
   assert.equal(dialog.raised,true);
   const click=selector=>dialog.element.querySelector(selector).click();
+  const labels=()=>["edificios","cultivos","monstruos"].map(cat=>dialog.element.querySelector(`[data-category="${cat}"] .cat-label`).textContent);
+  const shown=labels();click('#rv-lang-toggle');
+  labels().forEach((label,index)=>assert.notEqual(label,shown[index]));
+  click('#rv-lang-toggle');assert.deepEqual(labels(),shown);
   assert.equal(dialog.element.querySelector('[data-category="alquimia"]').disabled,true);
   assert.equal(dialog.element.querySelector('[data-category="herreria"]').disabled,false);
   click('[data-category="recoleccion"]');click('[data-gather="comida"]');

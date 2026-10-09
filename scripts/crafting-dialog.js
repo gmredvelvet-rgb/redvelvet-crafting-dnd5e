@@ -1342,7 +1342,7 @@ import { MODES, craftingMode, registerCoreMode, openCore, coinLabel, coinsFor, p
     html.find("#rv-category-screen h2").text(S.catTitle);
     html.find("#rv-category-screen .subtitle").text(S.catSubtitle);
     html.find("#rv-lang-toggle").text(S.langToggle);
-    ["herreria", "alquimia", "joyeria", "trabajo-con-piel", "equipo-vario", "recoleccion", "construcciones", "reciclaje", "reglas"].forEach((cat) => {
+    Object.keys(S.cats).forEach((cat) => {
       html.find(`.rv-cat-btn[data-category="${cat}"] .cat-label`).text(S.cats[cat]);
     });
     html.find("#rv-btn-back-forge").text(S.backMenu);

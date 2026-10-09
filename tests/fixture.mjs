@@ -25,7 +25,8 @@ export function item(actor,data) {
 export function actor(data={}) {
   const doc={id:`actor${++counter}`,name:"Aster",isOwner:true,system:{abilities:{int:{mod:3},str:{mod:2},dex:{mod:4}},attributes:{prof:3},skills:{nat:{total:6},sur:{total:5},ath:{total:5},inv:{total:6}},tools:{smith:{total:7,value:1,ability:"str"}}},flags:{},...data};
   doc.uuid=`Actor.${doc.id}`;
-  doc.items=new Collection();
+  // Foundry defines embedded collections as read-only, non-configurable properties.
+  Object.defineProperty(doc,"items",{value:new Collection(),writable:false,configurable:false,enumerable:true});
   doc.createEmbeddedDocuments=async(type,rows)=>{
     if(doc.failCreate) {doc.failCreate=false;throw Error("create failed");}
     const docs=rows.map(row=>item(doc,row));

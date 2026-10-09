@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 — 2026-10-09
+
+- Taller Extendido: los botones del menú vuelven a responder. Foundry define el inventario del actor como propiedad de solo lectura y la capa que protege el inventario durante un intento respondía con otro valor, lo que detenía la ventana justo después de conectar el botón de idioma. El taller Core no estaba afectado.
+- El botón de idioma traduce también Construcciones, Cultivos y Despiece.
+- Las pruebas reproducen el inventario de solo lectura de Foundry para que el fallo no pueda volver.
+
 ## 1.1.0 — 2026-10-07
 
 - Diseño unificado con PF2e para los talleres Core y Extendido: misma portada, tarjetas ilustradas, iconografía, colores y sonidos.

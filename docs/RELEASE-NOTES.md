@@ -1,18 +1,15 @@
-RedVelvet Crafting — D&D5e 1.1.0 prepara el taller para Foundry v13/v14 y conserva sus oficios, recolección, construcción, cultivos, despiece y reglas homebrew.
+RedVelvet Crafting — D&D5e 1.1.1 corrige el taller Extendido, que se abría pero no respondía.
 
-- **Modo Core (nuevo, por defecto):** taller sencillo en el que el jugador elige un oficio, busca el objeto, paga la mitad de su precio en monedas, tira y juega el mini-juego. El taller completo pasa a ser el modo **Extendido** y se activa en el ajuste de mundo "Modo de crafteo".
-- Diseño compartido con PF2e en Core y Extendido: tarjetas ilustradas, catálogo con búsqueda, pasos de fabricación y avisos de precisión.
-- Arte propio de la edición PF2e reutilizado localmente: 13 fondos y 15 SVG, más una portada nueva.
-- 20 efectos sonoros originales, diferenciados por actividad y con volumen por usuario.
-- Herramientas apropiadas por receta, selector y tiradas nativas D&D5e con característica configurable, competencia, pericia, bonos y ventaja/desventaja. Cancelar devuelve materiales y permite reintentar.
-- Habilidades nativas para Recolección, Cultivos y Despiece; iconos con teclado y animaciones con movimiento reducido.
-- Correcciones de pilas duplicadas, doble clic, temporizadores al cerrar, recuperación de inventario y tiradas de respaldo.
-- Soft gate Patreon con Velvet License Hub opcional: crafting funciona durante la prueba gratuita y durante fallos de autenticación.
+- **Botones del taller Extendido:** al abrir con `/craft` solo funcionaba el botón de idioma. Foundry define el inventario del actor como propiedad de solo lectura, y la capa que protege el inventario durante un intento respondía con otro valor; el error detenía la ventana antes de conectar el resto de botones. Ahora todas las categorías, Recolección, Reciclaje, Cultivos, Despiece y las Reglas responden.
+- **Idioma:** el botón 🌐 traduce también Construcciones (Building), Cultivos (Farming) y Despiece (Scavenging).
+- El taller Core no estaba afectado y no cambia.
 
-Pruebas automatizadas: **42 aprobadas**, más revisión en navegador sobre un inventario simulado. GitHub Actions valida el código y genera el paquete.
+**English:** the Extended workshop opened but only the language button worked. Every menu button now responds, and the language toggle also translates Building, Farming and Scavenging. Update from the module manager; no world changes are needed.
 
-**Candidato en borrador:** faltan las pruebas en mundos reales de Foundry v13 y v14 y OAuth Patreon real descritas en `docs/RELEASE-QA.md`. No se anuncian esas comprobaciones como realizadas.
+Pruebas automatizadas: **42 aprobadas**, con un inventario de solo lectura como el de Foundry, que reproduce el fallo sin la corrección. El fallo se confirmó contra el código fuente de Foundry 14.368; no se ha ejecutado un mundo real de Foundry v13 para esta versión.
 
-Archivos: `redvelvet-crafting-dnd5e.zip`, `module.json` y `SHA256SUMS.txt`. Para comprobar integridad, compara los SHA-256 del archivo de checksums. Al publicar la release, el manifiesto estable de Foundry será `/releases/latest/download/module.json`.
+**Compatibilidad:** Foundry v13 como mínimo y 14.999 como máximo.
+
+Archivos: `redvelvet-crafting-dnd5e.zip`, `module.json` y `SHA256SUMS.txt`. Manifiesto de instalación: `https://github.com/gmredvelvet-rgb/redvelvet-crafting-dnd5e/releases/latest/download/module.json`.
 
 Uso: selecciona un token y escribe `/craft` (abre el modo elegido en los ajustes); o ejecuta `game.modules.get("redvelvet-crafting-dnd5e").api.open()`.

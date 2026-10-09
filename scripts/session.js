@@ -1,6 +1,12 @@
 const actorLocks = new Set();
 const clone = value => value === undefined ? undefined : structuredClone(value);
 const read = (object, path) => path.split(".").reduce((value,key) => value?.[key],object);
+// Foundry defines embedded collections (actor.items) as read-only, non-configurable properties, and a
+// Proxy may not answer those with another value. Each proxy therefore wraps an empty stand-in that
+// shares the document's prototype, and every trap reads from the real document.
+const wrap = (target, get) => new Proxy(Object.create(Object.getPrototypeOf(target)), {
+  get: (_,key) => get(target,key), has: (_,key) => key in target
+});
 
 /** Local, reversible inventory operations. Document methods are never patched globally. */
 export class CraftingSession {
@@ -14,14 +20,14 @@ export class CraftingSession {
     this.busy = false;
     this.closed = false;
     const self = this;
-    const collection = new Proxy(actor.items, {get(target,key) {
+    const collection = wrap(actor.items, (target,key) => {
       if (key === "get") return id => self.item(target.get(id));
       if (key === "find") return predicate => self.item(target.find(item => predicate(self.item(item))));
       if (key === "filter") return predicate => target.filter(item => predicate(self.item(item))).map(item => self.item(item));
       const value = Reflect.get(target,key,target);
       return typeof value === "function" ? value.bind(target) : value;
-    }});
-    this.actor = new Proxy(actor, {get(target,key) {
+    });
+    this.actor = wrap(actor, (target,key) => {
       if (key === "items") return collection;
       if (key === "createEmbeddedDocuments") return async (type,data,options) => {
         const docs = await target.createEmbeddedDocuments(type,data,options);
@@ -36,12 +42,12 @@ export class CraftingSession {
       };
       const value = Reflect.get(target,key,target);
       return typeof value === "function" ? value.bind(target) : value;
-    }});
+    });
   }
   item(document) {
     if (!document || this.items.has(document)) return document && this.items.get(document);
     const self = this;
-    const proxy = new Proxy(document, {get(target,key) {
+    const proxy = wrap(document, (target,key) => {
       if (key === "update") return async patch => {
         const previous = Object.fromEntries(Object.keys(patch).map(path => [path,clone(read(target,path))]));
         const result = await target.update(patch);
@@ -63,7 +69,7 @@ export class CraftingSession {
       };
       const value = Reflect.get(target,key,target);
       return typeof value === "function" ? value.bind(target) : value;
-    }});
+    });
     this.items.set(document,proxy);
     return proxy;
   }
